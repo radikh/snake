@@ -15,8 +15,12 @@ class Snake {
   direction: Direction;
   
   constructor() {
+    // Initialize with 4 segments in a row, pointing right
     this.body = [
-      { x: 10, y: 10 }
+      { x: 10, y: 10 }, // Head
+      { x: 9, y: 10 },  // Second segment
+      { x: 8, y: 10 },  // Third segment
+      { x: 7, y: 10 }   // Fourth segment
     ];
     this.direction = Direction.Right;
   }
@@ -224,7 +228,7 @@ document.addEventListener('keydown', (e) => {
 function gameLoop() {
   game.update();
   game.draw();
-  setTimeout(gameLoop, 100);
+  setTimeout(gameLoop, 300);
 }
 
 window.onload = () => {
