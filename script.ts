@@ -125,41 +125,70 @@ class Game {
   food: Food;
   score: number;
   gameOver: boolean;
+  speed: number;
+  normalSpeed: number;
+  fastSpeed: number;
+  longPressTimer: number | null;
   
   constructor() {
     this.snake = new Snake();
     this.food = new Food();
     this.score = 0;
     this.gameOver = false;
+    this.normalSpeed = 300; // Normal speed (milliseconds between updates)
+    this.fastSpeed = 150;   // Fast speed when long pressing
+    this.speed = this.normalSpeed;
+    this.longPressTimer = null;
     this.setupEventListeners();
   }
   
   setupEventListeners() {
     document.addEventListener('keydown', (e) => {
       const { direction } = this.snake;
+      let newDirection: Direction | null = null;
       
-    
       switch(e.key) {
         case 'ArrowUp':
           if (direction !== Direction.Down) {
-            this.snake.direction = Direction.Up;
+            newDirection = Direction.Up;
           }
           break;
         case 'ArrowDown':
           if (direction !== Direction.Up) {
-            this.snake.direction = Direction.Down;
+            newDirection = Direction.Down;
           }
           break;
         case 'ArrowLeft':
           if (direction !== Direction.Right) {
-            this.snake.direction = Direction.Left;
+            newDirection = Direction.Left;
           }
           break;
         case 'ArrowRight':
           if (direction !== Direction.Left) {
-            this.snake.direction = Direction.Right;
+            newDirection = Direction.Right;
           }
           break;
+      }
+      
+      // If direction changed and no timer is running, start the long press timer
+      if (newDirection !== null && this.longPressTimer === null) {
+        this.snake.direction = newDirection;
+        
+        this.longPressTimer = window.setTimeout(() => {
+          this.speed = this.fastSpeed; // Speed up after long press
+        }, 300); // 300ms threshold for "long press"
+      }
+    });
+    
+    document.addEventListener('keyup', (e) => {
+      if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight'].includes(e.key)) {
+        // Clear the timer if it exists
+        if (this.longPressTimer !== null) {
+          clearTimeout(this.longPressTimer);
+          this.longPressTimer = null;
+        }
+        // Reset speed to normal
+        this.speed = this.normalSpeed;
       }
     });
   }
@@ -228,7 +257,7 @@ document.addEventListener('keydown', (e) => {
 function gameLoop() {
   game.update();
   game.draw();
-  setTimeout(gameLoop, 300);
+  setTimeout(gameLoop, game.speed); // Use the current game speed
 }
 
 window.onload = () => {
