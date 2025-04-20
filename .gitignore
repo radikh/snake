@@ -39,6 +39,7 @@ dist/
 out/
 build/
 .parcel-cache/
+!docs/*
 
 # Environment variables
 .env
@@ -69,5 +70,4 @@ node_modules
 typings/
 lib/*.js
 test/*.js
-*.map
 
