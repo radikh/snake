@@ -2,7 +2,8 @@
 
 A classic Snake game implemented in TypeScript with modern features and a responsive design.
 
-![Snake Game Screenshot]()
+![Snake Game Screenshot](![image](https://github.com/user-attachments/assets/ad4ca531-b91a-449d-aa9f-5848fe177332)
+)
 
 ## Features
 
