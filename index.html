@@ -9,11 +9,13 @@
             margin: 0;
             padding: 0;
             display: flex;
+            flex-direction: column;
             justify-content: center;
             align-items: center;
-            height: 100vh;
+            min-height: 100vh;
             background-color: #222;
             font-family: Arial, sans-serif;
+            color: white;
         }
         .game-container {
             display: flex;
@@ -56,9 +58,106 @@
             font-size: 0.8em;
             color: #AAA;
         }
+        .game-info {
+            background-color: #333;
+            border: 2px solid #4CAF50;
+            border-radius: 8px;
+            width: 670px;
+            margin-bottom: 20px;
+            padding: 15px;
+        }
+        .game-info h2 {
+            text-align: center;
+            margin-top: 0;
+            color: #4CAF50;
+            border-bottom: 1px solid #4CAF50;
+            padding-bottom: 8px;
+            margin-bottom: 12px;
+        }
+        .info-section {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+        }
+        .controls, .gameplay {
+            width: 48%;
+        }
+        .info-row {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+        }
+        .icon {
+            font-size: 1.5em;
+            width: 40px;
+            text-align: center;
+            margin-right: 10px;
+            color: #FFA500;
+        }
+        .description {
+            flex: 1;
+        }
+        .gameplay .info-row .icon {
+            color: #FF6666;
+        }
     </style>
 </head>
 <body>
+    <div class="game-info">
+        <h2>🐍 Snake Game Instructions 🐍</h2>
+        <div class="info-section">
+            <div class="controls">
+                <h3>Controls:</h3>
+                <div class="info-row">
+                    <div class="icon">⬆️</div>
+                    <div class="description">Move Up (Arrow Up)</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">⬇️</div>
+                    <div class="description">Move Down (Arrow Down)</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">⬅️</div>
+                    <div class="description">Move Left (Arrow Left)</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">➡️</div>
+                    <div class="description">Move Right (Arrow Right)</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">⏱️</div>
+                    <div class="description">Hold any arrow key to speed up</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">🔄</div>
+                    <div class="description">Press Space to restart after game over</div>
+                </div>
+            </div>
+            <div class="gameplay">
+                <h3>Game Rules:</h3>
+                <div class="info-row">
+                    <div class="icon">🍎</div>
+                    <div class="description">Regular apple: +1 point and grow</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">🍏</div>
+                    <div class="description">Big apple (appears every 6 regular apples): +3-6 points</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">⏳</div>
+                    <div class="description">Big apple disappears after 12 seconds</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">🔄</div>
+                    <div class="description">Snake can go through walls and appear on the other side</div>
+                </div>
+                <div class="info-row">
+                    <div class="icon">💥</div>
+                    <div class="description">Game ends if snake hits itself</div>
+                </div>
+            </div>
+        </div>
+    </div>
     <div class="game-container">
         <canvas id="gameCanvas" width="400" height="400"></canvas>
         <div class="high-scores">
