@@ -120,6 +120,89 @@ class Food {
   }
 }
 
+// Add Big Food class for special bonus food
+class BigFood extends Food {
+  isActive: boolean;
+  timer: number;
+  points: number;
+  size: number;
+  
+  constructor() {
+    super();
+    this.isActive = false;
+    this.timer = 0;
+    this.points = 0;
+    this.size = 2; // Size multiplier (2x2 grid)
+  }
+  
+  activate() {
+    this.isActive = true;
+    this.randomize();
+    this.points = 3 + Math.floor(Math.random() * 4); // 3 to 6 points
+    this.timer = 12000; // 12 seconds in milliseconds
+  }
+  
+  deactivate() {
+    this.isActive = false;
+    this.timer = 0;
+  }
+  
+  update(deltaTime: number) {
+    if (!this.isActive) return;
+    
+    this.timer -= deltaTime;
+    if (this.timer <= 0) {
+      this.deactivate();
+    }
+  }
+  
+  randomize() {
+    // Ensure big food doesn't exceed grid boundaries
+    this.x = Math.floor(Math.random() * (tileCount - this.size + 1));
+    this.y = Math.floor(Math.random() * (tileCount - this.size + 1));
+  }
+  
+  draw() {
+    if (!ctx || !this.isActive) return;
+    
+    // Draw a bigger apple with a different shade of red
+    ctx.fillStyle = "#FF3333";
+    ctx.fillRect(
+      this.x * gridSize,
+      this.y * gridSize,
+      this.size * gridSize - 2,
+      this.size * gridSize - 2
+    );
+    
+    // Add a highlight effect
+    ctx.fillStyle = "#FF6666";
+    ctx.fillRect(
+      this.x * gridSize + 5,
+      this.y * gridSize + 5,
+      10,
+      10
+    );
+    
+    // Display the number of points
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = "16px Arial";
+    ctx.textAlign = "center";
+    ctx.fillText(
+      `${this.points}`,
+      this.x * gridSize + (this.size * gridSize / 2),
+      this.y * gridSize + (this.size * gridSize / 2) + 5
+    );
+  }
+  
+  checkCollision(x: number, y: number): boolean {
+    if (!this.isActive) return false;
+    
+    // Check if head is anywhere within the big food area
+    return (x >= this.x && x < this.x + this.size &&
+            y >= this.y && y < this.y + this.size);
+  }
+}
+
 // Add an interface for high scores
 interface HighScore {
   name: string;
@@ -130,6 +213,7 @@ interface HighScore {
 class Game {
   snake: Snake;
   food: Food;
+  bigFood: BigFood;
   score: number;
   gameOver: boolean;
   speed: number;
@@ -141,10 +225,13 @@ class Game {
   isNewHighScore: boolean;
   playerName: string;
   isEnteringName: boolean;
+  foodEatenCount: number;
+  lastUpdateTime: number;
   
   constructor() {
     this.snake = new Snake();
     this.food = new Food();
+    this.bigFood = new BigFood();
     this.score = 0;
     this.gameOver = false;
     this.normalSpeed = 200; // Normal speed (milliseconds between updates)
@@ -156,6 +243,8 @@ class Game {
     this.isNewHighScore = false;
     this.playerName = 'Player 1';
     this.isEnteringName = false;
+    this.foodEatenCount = 0; // Track number of regular food eaten
+    this.lastUpdateTime = Date.now();
     this.setupEventListeners();
     this.updateHighScoresDisplay();
   }
@@ -228,13 +317,30 @@ class Game {
   update() {
     if (this.gameOver) return;
     
+    // Calculate delta time for time-based updates
+    const currentTime = Date.now();
+    const deltaTime = currentTime - this.lastUpdateTime;
+    this.lastUpdateTime = currentTime;
+    
+    // Update big food timer if active
+    this.bigFood.update(deltaTime);
+    
     this.snake.move();
     
     const head = this.snake.body[0];
+    
+    // Check for collision with regular food
     if (head.x === this.food.x && head.y === this.food.y) {
       this.score++;
+      this.foodEatenCount++;
       
-      // Speed up the game every 10 fruits
+      // Every 6 regular food eaten, activate big food
+      if (this.foodEatenCount >= 6) {
+        this.foodEatenCount = 0;
+        this.bigFood.activate();
+      }
+      
+      // Speed up the game every fruit
       if (this.score % 1 === 0) {
         // Decrease both speeds by 10ms (making the game faster)
         this.normalSpeed = Math.max(this.normalSpeed - 10, this.minSpeed);
@@ -250,7 +356,21 @@ class Game {
       
       this.food.randomize();
       this.snake.grow();
-    } else {
+    } 
+    // Check for collision with big food
+    else if (this.bigFood.isActive && this.bigFood.checkCollision(head.x, head.y)) {
+      // Add big food's points to score
+      this.score += this.bigFood.points;
+      
+      // Deactivate the big food
+      this.bigFood.deactivate();
+      
+      // Grow the snake
+      for (let i = 0; i < this.bigFood.points; i++) {
+        this.snake.grow();
+      }
+    }
+    else {
       this.snake.body.pop();
     }
     
@@ -377,10 +497,21 @@ class Game {
       this.snake.draw();
       this.food.draw();
       
+      // Draw big food if active
+      this.bigFood.draw();
+      
       ctx.fillStyle = "#ffffff";
       ctx.font = "20px Arial";
       ctx.textAlign = "left";
       ctx.fillText(`Score: ${this.score}`, 10, 30);
+      
+      // If big food is active, show its timer
+      if (this.bigFood.isActive) {
+        const secondsLeft = Math.ceil(this.bigFood.timer / 1000);
+        ctx.fillStyle = "#FF6666";
+        ctx.textAlign = "right";
+        ctx.fillText(`Big Apple: ${secondsLeft}s`, canvas.width - 10, 30);
+      }
     } 
     // Game over screen
     else {
@@ -418,7 +549,8 @@ class Game {
           });
         }
         
-        // Restart prompt at bottom with fixed position
+        // Restart prompt at bottom with fixed position - changed to light green
+        ctx.fillStyle = "#90EE90"; // Light green color
         ctx.font = "18px Arial";
         ctx.fillText("Press Space to Restart", centerX, canvas.height - 20);
       }
