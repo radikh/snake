@@ -120,6 +120,13 @@ class Food {
   }
 }
 
+// Add an interface for high scores
+interface HighScore {
+  name: string;
+  score: number;
+  date: string;
+}
+
 class Game {
   snake: Snake;
   food: Food;
@@ -130,18 +137,27 @@ class Game {
   fastSpeed: number;
   longPressTimer: number | null;
   minSpeed: number;
+  highScores: HighScore[];
+  isNewHighScore: boolean;
+  playerName: string;
+  isEnteringName: boolean;
   
   constructor() {
     this.snake = new Snake();
     this.food = new Food();
     this.score = 0;
     this.gameOver = false;
-    this.normalSpeed = 300; // Normal speed (milliseconds between updates)
-    this.fastSpeed = 150;   // Fast speed when long pressing
+    this.normalSpeed = 200; // Normal speed (milliseconds between updates)
+    this.fastSpeed = 120;   // Fast speed when long pressing
     this.speed = this.normalSpeed;
     this.longPressTimer = null;
     this.minSpeed = 50;     // Minimum speed limit to prevent game from becoming too fast
+    this.highScores = this.loadHighScores();
+    this.isNewHighScore = false;
+    this.playerName = 'Player 1';
+    this.isEnteringName = false;
     this.setupEventListeners();
+    this.updateHighScoresDisplay();
   }
   
   setupEventListeners() {
@@ -193,6 +209,20 @@ class Game {
         this.speed = this.normalSpeed;
       }
     });
+
+    // Add key listener for name entry
+    document.addEventListener('keydown', (e) => {
+      if (this.isEnteringName) {
+        if (e.key === 'Enter') {
+          this.saveHighScore();
+        } else if (e.key === 'Backspace') {
+          this.playerName = this.playerName.slice(0, -1);
+        } else if (e.key.length === 1 && this.playerName.length < 10) {
+          this.playerName += e.key;
+        }
+        e.preventDefault();
+      }
+    });
   }
   
   update() {
@@ -226,36 +256,158 @@ class Game {
     
     if (this.snake.checkCollision()) {
       this.gameOver = true;
+      this.checkHighScore();
+    }
+  }
+
+  loadHighScores(): HighScore[] {
+    const highScoresJson = localStorage.getItem('snakeHighScores');
+    if (highScoresJson) {
+      return JSON.parse(highScoresJson);
+    } else {
+      return [];
+    }
+  }
+  
+  saveHighScores() {
+    localStorage.setItem('snakeHighScores', JSON.stringify(this.highScores));
+  }
+  
+  checkHighScore() {
+    if (this.score === 0) return;
+    
+    // If we have fewer than 5 scores, or the current score is higher than the lowest high score
+    if (this.highScores.length < 5 || this.score > this.highScores[this.highScores.length - 1].score) {
+      this.isNewHighScore = true;
+      this.isEnteringName = true;
+    }
+  }
+  
+  saveHighScore() {
+    const newScore: HighScore = {
+      name: this.playerName,
+      score: this.score,
+      date: new Date().toLocaleDateString()
+    };
+    
+    this.highScores.push(newScore);
+    // Sort high scores (highest first)
+    this.highScores.sort((a, b) => b.score - a.score);
+    // Keep only the top 5
+    if (this.highScores.length > 5) {
+      this.highScores = this.highScores.slice(0, 5);
+    }
+    
+    // Save to localStorage
+    this.saveHighScores();
+    this.isEnteringName = false;
+    
+    // Update the sidebar display
+    this.updateHighScoresDisplay();
+  }
+  
+  updateHighScoresDisplay() {
+    const highScoresList = document.getElementById('high-scores-list');
+    if (!highScoresList) return;
+    
+    // Clear existing content
+    highScoresList.innerHTML = '';
+    
+    if (this.highScores.length === 0) {
+      const noScores = document.createElement('div');
+      noScores.className = 'no-scores';
+      noScores.textContent = 'No scores yet. Start playing!';
+      highScoresList.appendChild(noScores);
+    } else {
+      // Add each high score
+      this.highScores.forEach((score, index) => {
+        const entry = document.createElement('div');
+        entry.className = 'score-entry';
+        
+        const rankAndName = document.createElement('div');
+        rankAndName.innerHTML = `${index + 1}. <span class="name">${score.name}</span>`;
+        
+        const scoreElement = document.createElement('span');
+        scoreElement.className = 'score';
+        scoreElement.textContent = `${score.score}`;
+        
+        const dateElement = document.createElement('div');
+        dateElement.className = 'date';
+        dateElement.textContent = score.date;
+        
+        entry.appendChild(rankAndName);
+        entry.appendChild(scoreElement);
+        entry.appendChild(dateElement);
+        
+        highScoresList.appendChild(entry);
+      });
+    }
+  }
+  
+  drawHighScores() {
+    if (!ctx) return;
+    
+    ctx.fillStyle = "#ffffff";
+    ctx.font = "24px Arial";
+    ctx.textAlign = "center";
+    const centerX = canvas.width / 2;
+    let centerY = canvas.height / 2 - 60;
+    
+    ctx.fillText("HIGH SCORES", centerX, centerY);
+    centerY += 30;
+    
+    ctx.font = "16px Arial";
+    
+    if (this.highScores.length === 0) {
+      ctx.fillText("No high scores yet!", centerX, centerY + 20);
+    } else {
+      this.highScores.forEach((highScore, index) => {
+        ctx.fillText(`${index + 1}. ${highScore.name}: ${highScore.score} (${highScore.date})`, centerX, centerY + index * 25);
+      });
     }
   }
   
   draw() {
     if (!ctx) return;
     
-
     ctx.fillStyle = "#000000";
     ctx.fillRect(0, 0, canvas.width, canvas.height);
     
-
-    this.snake.draw();
-    this.food.draw();
-    
-
-    ctx.fillStyle = "#ffffff";
-    ctx.font = "20px Arial";
-    ctx.fillText(`Score: ${this.score}`, 10, 30);
-    
-
-    if (this.gameOver) {
+    // During gameplay
+    if (!this.gameOver) {
+      this.snake.draw();
+      this.food.draw();
+      
+      ctx.fillStyle = "#ffffff";
+      ctx.font = "20px Arial";
+      ctx.textAlign = "left";
+      ctx.fillText(`Score: ${this.score}`, 10, 30);
+    } 
+    // Game over screen
+    else {
       ctx.fillStyle = "#ffffff";
       ctx.font = "30px Arial";
       ctx.textAlign = "center";
       const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2;
+      const centerY = canvas.height / 2 - 100;
+      
       ctx.fillText("Game Over!", centerX, centerY);
       ctx.font = "20px Arial";
       ctx.fillText(`Final Score: ${this.score}`, centerX, centerY + 30);
-      ctx.fillText("Press Space to Restart", centerX, centerY + 60);
+      
+      // If it's a new high score and player is entering name
+      if (this.isEnteringName) {
+        ctx.fillText("New High Score! Enter your name:", centerX, centerY + 70);
+        ctx.fillText(this.playerName + "_", centerX, centerY + 100);
+      } 
+      // If name was entered or it's not a high score
+      else {
+        // Show high scores
+        this.drawHighScores();
+        
+        // Restart prompt at bottom
+        ctx.fillText("Press Space to Restart", centerX, canvas.height - 30);
+      }
     }
   }
 }
@@ -276,4 +428,7 @@ function gameLoop() {
 
 window.onload = () => {
   gameLoop();
+  
+  // Check for existing high scores to show on initial load
+  game.updateHighScoresDisplay();
 };
