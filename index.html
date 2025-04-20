@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="uk">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snake Game</title>
+    <title data-i18n="title">Гра "Змійка"</title>
     <style>
         body {
             margin: 0;
@@ -100,60 +100,90 @@
         .gameplay .info-row .icon {
             color: #FF6666;
         }
+        
+        /* Language selector styling */
+        .language-selector {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            background-color: #333;
+            padding: 5px 10px;
+            border-radius: 5px;
+            border: 1px solid #4CAF50;
+        }
+        
+        .language-btn {
+            background: none;
+            border: none;
+            color: #ddd;
+            padding: 5px 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        
+        .language-btn.active {
+            color: #4CAF50;
+            text-decoration: underline;
+        }
     </style>
 </head>
 <body>
+    <div class="language-selector">
+        <button class="language-btn" data-lang="uk">🇺🇦 UA</button>
+        <button class="language-btn" data-lang="en">🇬🇧 EN</button>
+    </div>
+    
     <div class="game-info">
-        <h2>🐍 Snake Game Instructions 🐍</h2>
+        <h2 data-i18n="instructions">🐍 Інструкція до гри "Змійка" 🐍</h2>
         <div class="info-section">
             <div class="controls">
-                <h3>Controls:</h3>
+                <h3 data-i18n="controls">Керування:</h3>
                 <div class="info-row">
                     <div class="icon">⬆️</div>
-                    <div class="description">Move Up (Arrow Up)</div>
+                    <div class="description" data-i18n="moveUp">Рух вгору (стрілка вгору)</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">⬇️</div>
-                    <div class="description">Move Down (Arrow Down)</div>
+                    <div class="description" data-i18n="moveDown">Рух вниз (стрілка вниз)</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">⬅️</div>
-                    <div class="description">Move Left (Arrow Left)</div>
+                    <div class="description" data-i18n="moveLeft">Рух вліво (стрілка вліво)</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">➡️</div>
-                    <div class="description">Move Right (Arrow Right)</div>
+                    <div class="description" data-i18n="moveRight">Рух вправо (стрілка вправо)</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">⏱️</div>
-                    <div class="description">Hold any arrow key to speed up</div>
+                    <div class="description" data-i18n="holdToSpeed">Утримуйте стрілку для прискорення</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">🔄</div>
-                    <div class="description">Press Space to restart after game over</div>
+                    <div class="description" data-i18n="pressToRestart">Натисніть пробіл для перезапуску після закінчення гри</div>
                 </div>
             </div>
             <div class="gameplay">
-                <h3>Game Rules:</h3>
+                <h3 data-i18n="gameRules">Правила гри:</h3>
                 <div class="info-row">
                     <div class="icon">🍎</div>
-                    <div class="description">Regular apple: +1 point and grow</div>
+                    <div class="description" data-i18n="regularApple">Звичайне яблуко: +1 очко та зростання</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">🍏</div>
-                    <div class="description">Big apple (appears every 6 regular apples): +3-6 points</div>
+                    <div class="description" data-i18n="bigApple">Велике яблуко (з'являється кожні 6 звичайних яблук): +3-6 очок</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">⏳</div>
-                    <div class="description">Big apple disappears after 12 seconds</div>
+                    <div class="description" data-i18n="bigAppleTimeout">Велике яблуко зникає через 12 секунд</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">🔄</div>
-                    <div class="description">Snake can go through walls and appear on the other side</div>
+                    <div class="description" data-i18n="wallPass">Змійка може проходити крізь стіни і з'являтися з іншого боку</div>
                 </div>
                 <div class="info-row">
                     <div class="icon">💥</div>
-                    <div class="description">Game ends if snake hits itself</div>
+                    <div class="description" data-i18n="collision">Гра закінчується, якщо змійка натикається на себе</div>
                 </div>
             </div>
         </div>
@@ -161,13 +191,14 @@
     <div class="game-container">
         <canvas id="gameCanvas" width="400" height="400"></canvas>
         <div class="high-scores">
-            <h2>High Scores</h2>
+            <h2 data-i18n="highScores">Рекорди</h2>
             <div id="high-scores-list">
                 <!-- High scores will be dynamically inserted here by JavaScript -->
-                <div class="no-scores">No scores yet. Start playing!</div>
+                <div class="no-scores" data-i18n="noScoresYet">Поки що немає результатів. Почніть грати!</div>
             </div>
         </div>
     </div>
-    <script src="script.ts"></script>
+    <script src="localization.ts" type="module"></script>
+    <script src="script.ts" type="module"></script>
 </body>
 </html>

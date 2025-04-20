@@ -1,7 +1,59 @@
+import { languages, getDefaultLanguage, setLanguagePreference, LanguageKey } from './localization';
+
 const canvas = document.getElementById('gameCanvas') as HTMLCanvasElement;
 const ctx = canvas.getContext('2d');
 const gridSize = 20;
 const tileCount = 20;
+
+// Current language
+let currentLang = getDefaultLanguage();
+let translations = languages[currentLang];
+
+// Initialize localization
+function initializeLanguage() {
+  // Set active class on the current language button
+  document.querySelectorAll('.language-btn').forEach(btn => {
+    const langBtn = btn as HTMLButtonElement;
+    if (langBtn.dataset.lang === currentLang) {
+      langBtn.classList.add('active');
+    } else {
+      langBtn.classList.remove('active');
+    }
+  });
+  
+  // Update page title
+  document.title = translations.title;
+  
+  // Update all i18n elements
+  document.querySelectorAll('[data-i18n]').forEach(el => {
+    const key = el.getAttribute('data-i18n') as keyof typeof translations;
+    if (translations[key]) {
+      el.textContent = translations[key];
+    }
+  });
+}
+
+// Handle language switching
+function setupLanguageSwitcher() {
+  document.querySelectorAll('.language-btn').forEach(btn => {
+    btn.addEventListener('click', (e) => {
+      const target = e.target as HTMLButtonElement;
+      const lang = target.dataset.lang as LanguageKey;
+      
+      if (lang && lang !== currentLang) {
+        currentLang = lang;
+        translations = languages[currentLang];
+        setLanguagePreference(currentLang);
+        initializeLanguage();
+        
+        // Update dynamic content, like high scores
+        if (game) {
+          game.updateHighScoresDisplay();
+        }
+      }
+    });
+  });
+}
 
 enum Direction {
   Up,
@@ -434,7 +486,7 @@ class Game {
     if (this.highScores.length === 0) {
       const noScores = document.createElement('div');
       noScores.className = 'no-scores';
-      noScores.textContent = 'No scores yet. Start playing!';
+      noScores.textContent = translations.noScoresYet;
       highScoresList.appendChild(noScores);
     } else {
       // Add each high score, limited to 5
@@ -503,14 +555,14 @@ class Game {
       ctx.fillStyle = "#ffffff";
       ctx.font = "20px Arial";
       ctx.textAlign = "left";
-      ctx.fillText(`Score: ${this.score}`, 10, 30);
+      ctx.fillText(`${translations.score}: ${this.score}`, 10, 30);
       
       // If big food is active, show its timer
       if (this.bigFood.isActive) {
         const secondsLeft = Math.ceil(this.bigFood.timer / 1000);
         ctx.fillStyle = "#FF6666";
         ctx.textAlign = "right";
-        ctx.fillText(`Big Apple: ${secondsLeft}s`, canvas.width - 10, 30);
+        ctx.fillText(`${translations.bigAppleTimer}: ${secondsLeft}s`, canvas.width - 10, 30);
       }
     } 
     // Game over screen
@@ -519,40 +571,40 @@ class Game {
       ctx.font = "30px Arial";
       ctx.textAlign = "center";
       const centerX = canvas.width / 2;
-      const centerY = canvas.height / 5; // Move game over text even higher
+      const centerY = canvas.height / 5;
       
-      ctx.fillText("Game Over!", centerX, centerY);
+      ctx.fillText(translations.gameOver, centerX, centerY);
       ctx.font = "20px Arial";
-      ctx.fillText(`Final Score: ${this.score}`, centerX, centerY + 20);
+      ctx.fillText(`${translations.finalScore}: ${this.score}`, centerX, centerY + 20);
       
       // If it's a new high score and player is entering name
       if (this.isEnteringName) {
-        ctx.fillText("New High Score! Enter your name:", centerX, centerY + 100);
+        ctx.fillText(translations.newHighScore, centerX, centerY + 100);
         ctx.fillText(this.playerName + "_", centerX, centerY + 140);
       } 
       // If name was entered or it's not a high score
       else {
         // Show high scores with even more spacing
         ctx.font = "24px Arial";
-        const highScoresY = centerY + 80; // Move high scores section even further down
-        ctx.fillText("HIGH SCORES", centerX, highScoresY);
+        const highScoresY = centerY + 80;
+        ctx.fillText(translations.highScores, centerX, highScoresY);
         
         ctx.font = "16px Arial";
         if (this.highScores.length === 0) {
-          ctx.fillText("No high scores yet!", centerX, highScoresY + 40);
+          ctx.fillText(translations.noHighScores, centerX, highScoresY + 40);
         } else {
           // Only display up to 5 high scores
           const displayScores = this.highScores.slice(0, 5);
           displayScores.forEach((highScore, index) => {
             ctx.fillText(`${index + 1}. ${highScore.name}: ${highScore.score} (${highScore.date})`, 
-                         centerX, highScoresY + 40 + (index * 35)); // Further increased spacing between entries
+                         centerX, highScoresY + 40 + (index * 35));
           });
         }
         
-        // Restart prompt at bottom with fixed position - changed to light green
-        ctx.fillStyle = "#90EE90"; // Light green color
+        // Restart prompt at bottom with fixed position
+        ctx.fillStyle = "#90EE90";
         ctx.font = "18px Arial";
-        ctx.fillText("Press Space to Restart", centerX, canvas.height - 20);
+        ctx.fillText(translations.pressSpace, centerX, canvas.height - 20);
       }
     }
   }
@@ -573,6 +625,8 @@ function gameLoop() {
 }
 
 window.onload = () => {
+  initializeLanguage();
+  setupLanguageSwitcher();
   gameLoop();
   
   // Check for existing high scores to show on initial load
