@@ -285,7 +285,7 @@ class Game {
   
   saveHighScore() {
     const newScore: HighScore = {
-      name: this.playerName,
+      name: this.playerName || 'Anonymous',
       score: this.score,
       date: new Date().toLocaleDateString()
     };
@@ -294,9 +294,7 @@ class Game {
     // Sort high scores (highest first)
     this.highScores.sort((a, b) => b.score - a.score);
     // Keep only the top 5
-    if (this.highScores.length > 5) {
-      this.highScores = this.highScores.slice(0, 5);
-    }
+    this.highScores = this.highScores.slice(0, 5);
     
     // Save to localStorage
     this.saveHighScores();
@@ -319,8 +317,9 @@ class Game {
       noScores.textContent = 'No scores yet. Start playing!';
       highScoresList.appendChild(noScores);
     } else {
-      // Add each high score
-      this.highScores.forEach((score, index) => {
+      // Add each high score, limited to 5
+      const displayScores = this.highScores.slice(0, 5);
+      displayScores.forEach((score, index) => {
         const entry = document.createElement('div');
         entry.className = 'score-entry';
         
@@ -389,24 +388,39 @@ class Game {
       ctx.font = "30px Arial";
       ctx.textAlign = "center";
       const centerX = canvas.width / 2;
-      const centerY = canvas.height / 2 - 100;
+      const centerY = canvas.height / 5; // Move game over text even higher
       
       ctx.fillText("Game Over!", centerX, centerY);
       ctx.font = "20px Arial";
-      ctx.fillText(`Final Score: ${this.score}`, centerX, centerY + 30);
+      ctx.fillText(`Final Score: ${this.score}`, centerX, centerY + 20);
       
       // If it's a new high score and player is entering name
       if (this.isEnteringName) {
-        ctx.fillText("New High Score! Enter your name:", centerX, centerY + 70);
-        ctx.fillText(this.playerName + "_", centerX, centerY + 100);
+        ctx.fillText("New High Score! Enter your name:", centerX, centerY + 100);
+        ctx.fillText(this.playerName + "_", centerX, centerY + 140);
       } 
       // If name was entered or it's not a high score
       else {
-        // Show high scores
-        this.drawHighScores();
+        // Show high scores with even more spacing
+        ctx.font = "24px Arial";
+        const highScoresY = centerY + 80; // Move high scores section even further down
+        ctx.fillText("HIGH SCORES", centerX, highScoresY);
         
-        // Restart prompt at bottom
-        ctx.fillText("Press Space to Restart", centerX, canvas.height - 30);
+        ctx.font = "16px Arial";
+        if (this.highScores.length === 0) {
+          ctx.fillText("No high scores yet!", centerX, highScoresY + 40);
+        } else {
+          // Only display up to 5 high scores
+          const displayScores = this.highScores.slice(0, 5);
+          displayScores.forEach((highScore, index) => {
+            ctx.fillText(`${index + 1}. ${highScore.name}: ${highScore.score} (${highScore.date})`, 
+                         centerX, highScoresY + 40 + (index * 35)); // Further increased spacing between entries
+          });
+        }
+        
+        // Restart prompt at bottom with fixed position
+        ctx.font = "18px Arial";
+        ctx.fillText("Press Space to Restart", centerX, canvas.height - 20);
       }
     }
   }
