@@ -129,6 +129,7 @@ class Game {
   normalSpeed: number;
   fastSpeed: number;
   longPressTimer: number | null;
+  minSpeed: number;
   
   constructor() {
     this.snake = new Snake();
@@ -139,6 +140,7 @@ class Game {
     this.fastSpeed = 150;   // Fast speed when long pressing
     this.speed = this.normalSpeed;
     this.longPressTimer = null;
+    this.minSpeed = 50;     // Minimum speed limit to prevent game from becoming too fast
     this.setupEventListeners();
   }
   
@@ -176,7 +178,7 @@ class Game {
         
         this.longPressTimer = window.setTimeout(() => {
           this.speed = this.fastSpeed; // Speed up after long press
-        }, 300); // 300ms threshold for "long press"
+        }, 200); // 300ms threshold for "long press"
       }
     });
     
@@ -198,18 +200,30 @@ class Game {
     
     this.snake.move();
     
-
     const head = this.snake.body[0];
     if (head.x === this.food.x && head.y === this.food.y) {
       this.score++;
+      
+      // Speed up the game every 10 fruits
+      if (this.score % 1 === 0) {
+        // Decrease both speeds by 10ms (making the game faster)
+        this.normalSpeed = Math.max(this.normalSpeed - 10, this.minSpeed);
+        this.fastSpeed = Math.max(this.fastSpeed - 10, this.minSpeed / 2); 
+        
+        // Apply the speed change immediately
+        if (this.speed === this.fastSpeed + 10) { // If was at fast speed
+          this.speed = this.fastSpeed;
+        } else { // If was at normal speed
+          this.speed = this.normalSpeed;
+        }
+      }
+      
       this.food.randomize();
       this.snake.grow();
     } else {
-    
       this.snake.body.pop();
     }
     
-
     if (this.snake.checkCollision()) {
       this.gameOver = true;
     }
